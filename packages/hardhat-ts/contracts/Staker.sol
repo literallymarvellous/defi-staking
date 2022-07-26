@@ -16,6 +16,8 @@ contract Staker {
 
   uint256 public constant threshold = 1 ether;
   uint256 public deadline = block.timestamp + 3 minutes;
+  uint8 counter;
+  bool openForWithdrawal;
   mapping(address => uint256) public balances;
 
   /**
@@ -41,32 +43,52 @@ contract Staker {
     _;
   }
 
-  constructor(address exampleExternalContractAddress) public {
+  constructor(address exampleExternalContractAddress) {
     exampleExternalContract = ExampleExternalContract(exampleExternalContractAddress);
   }
 
+  /**
+    @notice fuction calls stake() when ETH is sent directly to contract
+   */
   receive() external payable {
     stake();
   }
 
-  function stake() public payable deadlineReached(false) stakeNotCompleted {
+  /**
+    @notice stakes ETH
+   */
+  function stake() public payable deadlineReached(false) {
     balances[msg.sender] += msg.value;
 
     emit Stake(msg.sender, msg.value);
   }
 
+  /**
+    @notice withdraws staked ETH to external contract if threshold is met else open withdrawal
+   */
   function execute() public deadlineReached(true) stakeNotCompleted {
+    require(counter < 1, 'execute only called once');
+
+    // increase number of calls for execute()
+    counter++;
+
     uint256 balance_ = address(this).balance;
 
-    require(balance_ >= threshold, "balance isn't over threshlod");
-
-    exampleExternalContract.complete{value: balance_}();
-    require(exampleExternalContract.completed(), 'execute failed');
+    if (balance_ >= threshold) {
+      exampleExternalContract.complete{value: balance_}();
+      require(exampleExternalContract.completed(), 'execute failed');
+    } else {
+      openForWithdrawal = true;
+    }
   }
 
+  /**
+    @notice sends staked ETH back to owners since threshold wasn't met
+   */
   function withdraw() public deadlineReached(true) stakeNotCompleted {
-    uint256 balance_ = balances[msg.sender];
+    require(openForWithdrawal, 'Withdrawal not allowed yet');
 
+    uint256 balance_ = balances[msg.sender];
     require(balance_ > 0, 'No balance to withdraw');
 
     balances[msg.sender] = 0;
@@ -75,6 +97,9 @@ contract Staker {
     require(sent, 'Failed to withdraw');
   }
 
+  /**
+    @notice calculates time left till deadline
+   */
   function timeLeft() public view returns (uint256) {
     if (block.timestamp >= deadline) {
       return 0;
