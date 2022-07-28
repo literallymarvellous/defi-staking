@@ -6,7 +6,7 @@ import './ExampleExternalContract.sol';
 /**
  * @title A staking contract
  * @author The name of the author
- *s @notice A contract that allows you yo stakie ETH
+ * @notice A contract that allows you to stakie ETH
  */
 contract Staker {
   // Events
@@ -15,7 +15,7 @@ contract Staker {
   ExampleExternalContract public exampleExternalContract;
 
   uint256 public constant threshold = 1 ether;
-  uint256 public deadline = block.timestamp + 3 minutes;
+  uint256 public deadline = block.timestamp + 2 days;
   uint8 counter;
   bool openForWithdrawal;
   mapping(address => uint256) public balances;

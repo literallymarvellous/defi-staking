@@ -136,14 +136,7 @@ describe('🚩 Challenge 1: 🥩 Decentralized Staking App', function () {
           expect(endingBalance).to.equal(startingBalance.add(ethers.utils.parseEther('0.001')).sub(ethers.BigNumber.from(gasCost)));
         });
       }
-      //
-
-      /*it("Should track tokens of owner by index", async function () {
-        const [ owner ] = await ethers.getSigners();
-        const startingBalance = await myContract.balanceOf(owner.address)
-        const token = await myContract.tokenOfOwnerByIndex(owner.address,startingBalance.sub(1));
-        expect(token.toNumber()).to.greaterThan(0);
-      });*/
+      
     });
   });
 });
